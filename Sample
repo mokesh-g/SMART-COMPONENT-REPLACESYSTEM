@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Component Replacement System for Power Electronics</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#fff;--fg:#0f1b33;--mut:#5b6b88;--navy:#0b1f4d;--blue:#1d5fd6;--lt:#eef3fc;--bd:#d6dfef;--ok:#0a7a4b;--okb:#e3f6ec;--wn:#8a5a00;--wnb:#fff1d1;--er:#b3261e;--erb:#fde7e5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a1228;--fg:#e6ecf8;--mut:#98a8c8;--navy:#060d20;--blue:#5b94f5;--lt:#12204a;--bd:#25376a;--ok:#5fd9a0;--okb:#0f3a2a;--wn:#ffcf70;--wnb:#3d2f0a;--er:#ff9b93;--erb:#4a1714}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--navy);color:#fff;padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header h1{font-size:16px;margin:0;font-weight:650}nav{display:flex;gap:6px}
+nav button{background:none;border:0;color:#c5d3f2;padding:6px 12px;border-radius:6px;font:inherit;cursor:pointer}
+nav button.on{background:var(--blue);color:#fff}
+main{max-width:1150px;margin:0 auto;padding:16px}
+.banner{background:var(--wnb);color:var(--wn);border:1px solid var(--wn);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:16px}
+.hero{background:linear-gradient(135deg,var(--navy),#14409c);color:#fff;border-radius:12px;padding:24px;margin-bottom:16px}
+.hero h2{margin:0 0 6px;font-size:22px}.hero p{margin:0 0 14px;color:#d3def7;max-width:720px}
+.sb{display:flex;gap:8px;flex-wrap:wrap}
+input,select{font:inherit;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
+.sb input{flex:1 1 240px}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer}
+.btn.ghost{background:var(--lt);color:var(--blue)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:16px}
+.card{border:1px solid var(--bd);border-radius:10px;padding:14px;background:var(--bg)}
+.card h3{margin:0 0 4px;font-size:16px}.card .n{font-size:28px;font-weight:700;color:var(--blue)}
+.cat{cursor:pointer}.cat:hover{border-color:var(--blue)}
+.mut{color:var(--mut);font-size:13px}
+.filters{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin:12px 0}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{background:var(--lt);color:var(--navy);font-weight:600}
+@media (prefers-color-scheme:dark){th{color:var(--fg)}}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--lt)}
+.b{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.b.ok{background:var(--okb);color:var(--ok)}.b.wn{background:var(--wnb);color:var(--wn)}.b.er{background:var(--erb);color:var(--er)}
+td.ok{background:var(--okb)}td.wn{background:var(--wnb)}td.er{background:var(--erb)}
+.two{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+h2.s{font-size:18px;margin:22px 0 8px;color:var(--navy)}@media (prefers-color-scheme:dark){h2.s{color:var(--fg)}}
+ul.w{padding-left:18px;margin:6px 0}ul.w li{margin:4px 0}
+a{color:var(--blue)}.steps{counter-reset:s;list-style:none;padding:0;display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.steps li{counter-increment:s;border-left:3px solid var(--blue);padding:4px 10px;background:var(--lt);border-radius:0 8px 8px 0}
+.steps li:before{content:counter(s)". ";font-weight:700;color:var(--blue)}
+.box{border:1px solid var(--bd);border-radius:10px;padding:12px 14px;background:var(--lt)}
+</style></head>
+<body><div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+const {useState,useMemo}=React; const html=htm.bind(React.createElement);
+
+// ---------- SAMPLE DATA (demo only). null = not recorded -> flagged as missing information ----------
+const SITE={Infineon:"https://www.infineon.com",STMicroelectronics:"https://www.st.com",onsemi:"https://www.onsemi.com",Vishay:"https://www.vishay.com"};
+const P=(pn,mfr,cat,sub,v,i,ic,pkg,pins,x={})=>({pn,mfr,cat,sub,v,i,ic,pkg,pins,rds:null,vce:null,vf:null,trr:null,rth:null,tj:null,cp:null,...x});
+const DB=[
+P("IRF540N","Infineon","MOSFET","N-channel",100,33,"25°C","TO-220AB","G-D-S",{rds:44,rth:1.15,tj:175}),
+P("IRFZ44N","Infineon","MOSFET","N-channel",55,49,"25°C","TO-220AB","G-D-S",{rds:17.5,rth:1.5,tj:175}),
+P("IRF3205","Infineon","MOSFET","N-channel",55,110,"25°C","TO-220AB","G-D-S",{rds:8,rth:0.75,tj:175}),
+P("IRFB4110","Infineon","MOSFET","N-channel",100,180,"25°C","TO-220AB","G-D-S",{rds:3.7,rth:0.402,tj:175}),
+P("IRF530N","Infineon","MOSFET","N-channel",100,17,"25°C","TO-220AB","G-D-S",{rds:90}),
+P("IRF9540N","Infineon","MOSFET","P-channel",100,23,"25°C","TO-220AB","G-D-S",{rds:117}),
+P("STP55NF06","STMicroelectronics","MOSFET","N-channel",60,50,"25°C","TO-220","G-D-S",{rds:18}),
+P("FQP30N06L","onsemi","MOSFET","N-channel",60,32,"25°C","TO-220","G-D-S",{rds:35}),
+P("IRFP250N","Infineon","MOSFET","N-channel",200,30,"25°C","TO-247AC","G-D-S",{rds:75}),
+P("IRFP260N","Infineon","MOSFET","N-channel",200,50,"25°C","TO-247AC","G-D-S",{rds:40}),
+P("IRG4PC40UD","Infineon","IGBT","IGBT (co-packed diode)",600,40,"25°C","TO-247AC","G-C-E",{vce:1.72,cp:"Yes"}),
+P("IRG4PC50UD","Infineon","IGBT","IGBT (co-packed diode)",600,55,"25°C","TO-247AC","G-C-E",{vce:1.65,cp:"Yes"}),
+P("IRG4BC30UD","Infineon","IGBT","IGBT (co-packed diode)",600,23,"25°C","TO-220AB","G-C-E",{cp:"Yes"}),
+P("IKW40N120H3","Infineon","IGBT","IGBT (co-packed diode)",1200,40,"100°C","TO-247-3","G-C-E",{vce:2.05,cp:"Yes"}),
+P("IKW40N120T2","Infineon","IGBT","IGBT (co-packed diode)",1200,40,"100°C","TO-247-3","G-C-E",{vce:1.7,cp:"Yes"}),
+P("1N4007","onsemi","Diode","Rectifier",1000,1,"avg","DO-41","A-K",{vf:1.1}),
+P("UF4007","Vishay","Diode","Fast recovery",1000,1,"avg","DO-41","A-K",{vf:1.7,trr:75}),
+P("1N5408","onsemi","Diode","Rectifier",1000,3,"avg","DO-201AD","A-K"),
+P("MUR460","onsemi","Diode","Fast recovery",600,4,"avg","DO-201AD","A-K",{trr:50}),
+P("MUR860","onsemi","Diode","Fast recovery",600,8,"avg","TO-220AC","K-A (tab K)",{trr:60}),
+P("MUR1560","onsemi","Diode","Fast recovery",600,15,"avg","TO-220AC","K-A (tab K)",{trr:60}),
+P("1N5819","onsemi","Diode","Schottky",40,1,"avg","DO-41","A-K"),
+P("1N5822","onsemi","Diode","Schottky",40,3,"avg","DO-201AD","A-K"),
+];
+// ---------- Transparent compatibility rules ----------
+// kind: eq (must be identical) | gte (candidate >= original) | lte (candidate <= original); hard = failure makes it Incompatible
+const RULES={
+MOSFET:[["sub","Channel type","","eq",1],["v","Vds (V)","V","gte",1],["i","Id (A)","A","gte",1],["rds","Rds(on) (mΩ)","mΩ","lte",0],["pkg","Package","","eq",1],["pins","Pin order","","eq",1],["rth","RθJC (°C/W)","","lte",0],["tj","Tj max (°C)","","gte",0]],
+IGBT:[["v","Vces (V)","V","gte",1],["i","Ic (A)","A","gte",1],["vce","Vce(sat) (V)","V","lte",0],["cp","Co-packed diode","","eq",1],["pkg","Package","","eq",1],["pins","Pin order","","eq",1],["rth","RθJC (°C/W)","","lte",0],["tj","Tj max (°C)","","gte",0]],
+Diode:[["sub","Diode type","","eq",1],["v","Vrrm (V)","V","gte",1],["i","If avg (A)","A","gte",1],["vf","Vf (V)","V","lte",0],["trr","trr (ns)","ns","lte",0],["pkg","Package","","eq",1],["pins","Pin order","","eq",1]]};
+function check(o,c){
+  const rows=RULES[o.cat].map(([k,label,u,kind,hard])=>{
+    const a=o[k],b=c[k];let r;
+    if(a==null||b==null)r="missing";
+    else if(kind==="eq")r=a===b?"match":"diff";
+    else if(a===b)r="match";
+    else r=(kind==="gte"?b>a:b<a)?"better":"worse";
+    return{k,label,a,b,r,hard};});
+  const fail=rows.filter(x=>x.hard&&(x.r==="diff"||x.r==="worse"));
+  const soft=rows.filter(x=>!x.hard&&(x.r==="diff"||x.r==="worse"));
+  const miss=rows.filter(x=>x.r==="missing");
+  const w=[];
+  fail.forEach(x=>w.push(["er",x.label+": candidate does not meet original ("+x.b+" vs "+x.a+")"]));
+  soft.forEach(x=>w.push(["wn",x.label+": candidate is weaker ("+x.b+" vs "+x.a+"); check thermal/efficiency impact"]));
+  miss.forEach(x=>w.push(["wn",x.label+": not recorded for "+(o[x.k]==null?o.pn:"")+(o[x.k]==null&&c[x.k]==null?" and ":"")+(c[x.k]==null?c.pn:"")+"; verify in datasheet"]));
+  if(o.ic!==c.ic)w.push(["wn","Current rating conditions differ ("+o.ic+" vs "+c.ic+"); ratings are not directly comparable"]);
+  const status=fail.length?"Incompatible":(soft.length||miss.length||o.ic!==c.ic)?"Review required":"Potential match";
+  return{rows,w,status,fail:fail.length,soft:soft.length,miss:miss.length};}
+const cls=s=>s==="Incompatible"?"er":s==="Review required"?"wn":"ok";
+const fmt=(v,u)=>v==null?"n/a":v+(u&&typeof v==="number"?" "+u:"");
+const CATS=[["MOSFET","N- and P-channel power MOSFETs"],["IGBT","Discrete IGBTs with co-packed diodes"],["Diode","Rectifier, fast-recovery and Schottky diodes"]];
+const uniq=(k)=>[...new Set(DB.map(d=>d[k]))].sort();
+
+function Datasheet({c}){return html`<a href=${SITE[c.mfr]} target="_blank" rel="noopener noreferrer">${c.mfr} site</a>`}
+
+function App(){
+  const [view,setView]=useState("home"),[q,setQ]=useState(""),[sel,setSel]=useState(null),[cmp,setCmp]=useState(null),[showBad,setShowBad]=useState(false);
+  const [f,setF]=useState({cat:"",mfr:"",pkg:"",v:"",i:""});
+  const go=(v)=>{setView(v);window.scrollTo(0,0)};
+  const results=useMemo(()=>{const t=q.trim().toLowerCase();
+    return DB.filter(d=>(!t||[d.pn,d.mfr,d.cat,d.sub].some(s=>s.toLowerCase().includes(t)))&&(!f.cat||d.cat===f.cat)&&(!f.mfr||d.mfr===f.mfr)&&(!f.pkg||d.pkg===f.pkg)&&(!f.v||d.v>=+f.v)&&(!f.i||d.i>=+f.i));},[q,f]);
+  const open=(pn)=>{setSel(pn);setCmp(null);go("detail")};
+  const SearchBar=html`<div className="sb"><input placeholder="Part number, manufacturer or type (e.g. IRF540N, onsemi, IGBT)" value=${q} onChange=${e=>setQ(e.target.value)} onKeyDown=${e=>e.key==="Enter"&&go("db")}/><button className="btn" onClick=${()=>go("db")}>Search</button></div>`;
+
+  let body;
+  if(view==="home"){
+    body=html`<div><div className="hero"><h2>Smart Component Replacement System</h2>
+      <p>Find candidate replacements for unavailable or obsolete MOSFETs, IGBTs and power diodes, and compare them against the original using transparent, rule-based checks instead of manual datasheet-by-datasheet reading.</p>${SearchBar}</div>
+      <h2 className="s" style=${{marginTop:0}}>Component categories</h2>
+      <div className="grid">${CATS.map(([c,d])=>html`<div key=${c} className="card cat" onClick=${()=>{setF({...f,cat:c});setQ("");go("db")}}><h3>${c}</h3><div className="n">${DB.filter(x=>x.cat===c).length}</div><div className="mut">${d}</div></div>`)}</div>
+      <h2 className="s">How it works</h2>
+      <ol className="steps"><li>Enter the part number you need to replace.</li><li>Review its recorded specifications.</li><li>The system lists same-category candidates and applies the rules.</li><li>Compare side by side; read warnings and missing data.</li><li>Open the datasheets and verify before choosing.</li></ol>
+      <div className="box" style=${{marginTop:16}}><b>Compatibility rules.</b> Hard checks (any failure = Incompatible): type/polarity, voltage rating ≥ original, current rating ≥ original, package, pin order, co-packed diode. Soft checks (failure = Review required): Rds(on), Vce(sat), Vf, trr, thermal resistance, Tj max. Any missing value or differing current-rating conditions also triggers Review required. The best possible result is <b>Potential match</b>; this tool never declares a verified drop-in replacement.</div></div>`;
+  } else if(view==="db"){
+    const opt=(arr)=>arr.map(x=>html`<option key=${x}>${x}</option>`);
+    body=html`<div><h2 className="s" style=${{marginTop:0}}>Component database</h2>${SearchBar}
+      <div className="filters">
+        <select value=${f.cat} onChange=${e=>setF({...f,cat:e.target.value})}><option value="">All types</option>${opt(uniq("cat"))}</select>
+        <select value=${f.mfr} onChange=${e=>setF({...f,mfr:e.target.value})}><option value="">All manufacturers</option>${opt(uniq("mfr"))}</select>
+        <select value=${f.pkg} onChange=${e=>setF({...f,pkg:e.target.value})}><option value="">All packages</option>${opt(uniq("pkg"))}</select>
+        <input type="number" placeholder="Min voltage (V)" value=${f.v} onChange=${e=>setF({...f,v:e.target.value})}/>
+        <input type="number" placeholder="Min current (A)" value=${f.i} onChange=${e=>setF({...f,i:e.target.value})}/>
+        <button className="btn ghost" onClick=${()=>{setF({cat:"",mfr:"",pkg:"",v:"",i:""});setQ("")}}>Reset</button></div>
+      <p className="mut">${results.length} of ${DB.length} sample records. Select a row to find alternatives.</p>
+      <div className="tw"><table><thead><tr><th>Part</th><th>Manufacturer</th><th>Type</th><th>Voltage</th><th>Current</th><th>Package</th><th>Pins</th></tr></thead><tbody>
+      ${results.map(d=>html`<tr key=${d.pn} className="click" onClick=${()=>open(d.pn)}><td><b>${d.pn}</b></td><td>${d.mfr}</td><td>${d.sub}</td><td>${d.v} V</td><td>${d.i} A (${d.ic})</td><td>${d.pkg}</td><td>${d.pins}</td></tr>`)}
+      ${!results.length&&html`<tr><td colSpan="7">No matching components in the sample database.</td></tr>`}</tbody></table></div></div>`;
+  } else {
+    const o=DB.find(d=>d.pn===sel);
+    const alts=DB.filter(d=>d.cat===o.cat&&d.pn!==o.pn).map(c=>({c,r:check(o,c)}))
+      .sort((a,b)=>["Potential match","Review required","Incompatible"].indexOf(a.r.status)-["Potential match","Review required","Incompatible"].indexOf(b.r.status)||a.r.fail-b.r.fail||a.r.miss-b.r.miss);
+    const shown=alts.filter(a=>showBad||a.r.status!=="Incompatible");
+    const chosen=cmp||alts.filter(a=>a.r.status!=="Incompatible").slice(0,3).map(a=>a.c.pn);
+    const toggle=(pn)=>setCmp(chosen.includes(pn)?chosen.filter(x=>x!==pn):[...chosen,pn].slice(-3));
+    const cmpList=alts.filter(a=>chosen.includes(a.c.pn));
+    const specs=RULES[o.cat];
+    body=html`<div><button className="btn ghost" onClick=${()=>go("db")}>← Back to database</button>
+      <h2 className="s">${o.pn} <span className="mut">· ${o.mfr} · ${o.sub}</span></h2>
+      <div className="tw"><table><tbody>${[["Voltage rating",o.v+" V"],["Current rating",o.i+" A @ "+o.ic],["Package",o.pkg],["Pin configuration",o.pins],...specs.filter(s=>["rds","vce","vf","trr","rth","tj","cp"].includes(s[0])).map(s=>[s[1],fmt(o[s[0]])]),["Datasheet",null]].map(([k,v])=>html`<tr key=${k}><th style=${{width:200}}>${k}</th><td>${v===null?html`<${Datasheet} c=${o}/>`:v}</td></tr>`)}</tbody></table></div>
+      <h2 className="s">Potential alternatives (${shown.length})</h2>
+      <label className="mut"><input type="checkbox" checked=${showBad} onChange=${e=>setShowBad(e.target.checked)}/> Show incompatible candidates</label>
+      <div className="tw" style=${{marginTop:8}}><table><thead><tr><th>Compare</th><th>Part</th><th>Mfr</th><th>Status</th><th>Hard fails</th><th>Weaker</th><th>Missing</th><th>Datasheet</th></tr></thead><tbody>
+      ${shown.map(({c,r})=>html`<tr key=${c.pn}><td><input type="checkbox" checked=${chosen.includes(c.pn)} onChange=${()=>toggle(c.pn)}/></td><td><b>${c.pn}</b></td><td>${c.mfr}</td><td><span className=${"b "+cls(r.status)}>${r.status}</span></td><td>${r.fail}</td><td>${r.soft}</td><td>${r.miss}</td><td><${Datasheet} c=${c}/></td></tr>`)}
+      ${!shown.length&&html`<tr><td colSpan="8">No candidate passes the hard checks in the sample database.</td></tr>`}</tbody></table></div>
+      <h2 className="s">Specification comparison</h2>
+      ${cmpList.length?html`<div className="tw"><table><thead><tr><th>Parameter</th><th>${o.pn} (original)</th>${cmpList.map(({c})=>html`<th key=${c.pn}>${c.pn}</th>`)}</tr></thead><tbody>
+        ${specs.map(([k,label,u],idx)=>html`<tr key=${k}><th>${label}</th><td>${fmt(o[k])}</td>${cmpList.map(({c,r})=>{const x=r.rows[idx];const t=x.r==="match"||x.r==="better"?"ok":x.r==="missing"?"wn":(x.hard?"er":"wn");return html`<td key=${c.pn} className=${t}>${fmt(c[k])}${x.r==="better"?" ↑":""}${x.r==="missing"?" (missing)":""}${x.r==="worse"||x.r==="diff"?" ✗":""}</td>`})}</tr>`)}
+        <tr><th>Status</th><td>—</td>${cmpList.map(({c,r})=>html`<td key=${c.pn}><span className=${"b "+cls(r.status)}>${r.status}</span></td>`)}</tr></tbody></table></div>
+        <h2 className="s">Compatibility warnings</h2>
+        <div className="two">${cmpList.map(({c,r})=>html`<div key=${c.pn} className="card"><h3>${c.pn} <span className=${"b "+cls(r.status)}>${r.status}</span></h3>
+          <ul className="w">${r.w.map((x,i)=>html`<li key=${i} style=${{color:`var(--${x[0]})`}}>${x[1]}</li>`)}
+          ${!r.w.length&&html`<li>No differences found in the recorded parameters.</li>`}</ul></div>`)}</div>`:html`<p className="mut">Tick candidates above to compare (up to 3).</p>`}
+      <div className="box" style=${{marginTop:16}}><b>Before selecting a replacement, verify in the manufacturer datasheets:</b> SOA, gate charge and drive voltage, switching times and losses, body-diode behaviour, avalanche rating, thermal derating at your operating temperature, and the parameters this prototype does not store. “Potential match” means only that the recorded parameters passed these rules.</div></div>`;
+  }
+  return html`<div><header><h1>⚡ Smart Component Replacement System</h1><nav>${[["home","Dashboard"],["db","Database"]].map(([v,l])=>html`<button key=${v} className=${view===v?"on":""} onClick=${()=>go(v)}>${l}</button>`)}</nav></header>
+    <main><div className="banner"><b>SAMPLE DATA.</b> Records are a small demo set of headline values for common parts; they are not authoritative. “n/a” means the value is not recorded. Datasheet links go to manufacturer home pages: search the part number there. No stock or pricing is shown. Always verify against the current datasheet.</div>${body}</main></div>`;
+}
+ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
+</script></body></html>
